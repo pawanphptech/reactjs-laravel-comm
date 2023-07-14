@@ -1,0 +1,58 @@
+version: '3.7'
+
+services:
+  nginx:
+    image: nginx:stable-alpine
+    container_name: techzzy_nginx
+    ports: 
+      - "8000:80"
+    links:
+      - php
+    volumes:
+      - ./:/var/www/html
+      - ./nginx/conf.d/:/etc/nginx/conf.d/
+    networks:
+      - webapp
+
+  php:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: techzzy_php
+    volumes:
+      - ./:/var/www/html
+    ports:
+      - "9001:9000"
+    networks:
+      - webapp
+
+  mysql:
+    image: mysql:8
+    container_name: techzzy_mysql
+    restart: always
+    environment:
+      MYSQL_DATABASE: techzzyDB
+      MYSQL_ROOT_PASSWORD: password123
+    volumes:
+      - ./mysql:/var/lib/mysql
+    ports:
+      - "3306:3306" 
+    networks:
+      - webapp
+
+  mailhog:
+    user: root
+    image: mailhog/mailhog
+    container_name: techzzy_mailhog
+    command: ["-storage=maildir", "-maildir-path=/maildir"]
+    volumes: 
+      - ./emails:/maildir
+    ports:
+      - "1025:1025"
+      - "8025:8025"
+    networks:
+      - webapp
+
+networks:
+  webapp:
+    driver: bridge
